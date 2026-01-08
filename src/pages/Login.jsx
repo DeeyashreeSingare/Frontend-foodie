@@ -86,21 +86,25 @@ const Login = () => {
         <div className="text-center mb-8">
           <h1
             style={{
-              fontSize: '3.5rem',
+              fontSize: '4rem',
               fontWeight: 900,
               fontStyle: 'italic',
-              color: '#EF4444',
-              letterSpacing: '-2px',
-              marginBottom: '0'
+              color: '#E23744',
+              letterSpacing: '-3px',
+              marginBottom: '0.5rem',
+              textShadow: '0 2px 4px rgba(226, 55, 68, 0.1)'
             }}
           >
             foodie
           </h1>
+          <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+            Discover the best food in your city
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-3xl font-bold text-center mb-2 text-gray-800">Login</h2>
-          <p className="text-center text-gray-500 mb-6">Welcome back! Please login to your account.</p>
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100" style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)' }}>
+          <h2 className="text-3xl font-bold text-center mb-2" style={{ color: '#1C1C1C' }}>Login</h2>
+          <p className="text-center mb-6" style={{ color: '#6B7280' }}>Welcome back! Please login to your account.</p>
 
           {successMessage && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
@@ -122,7 +126,8 @@ const Login = () => {
                 type="email"
                 id="email"
                 name="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none"
+                className="input-zomato"
+                style={{ width: '100%' }}
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -138,7 +143,8 @@ const Login = () => {
                 type="password"
                 id="password"
                 name="password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none"
+                className="input-zomato"
+                style={{ width: '100%' }}
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -148,7 +154,8 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              className="btn-zomato"
+              style={{ width: '100%', marginTop: '1rem' }}
               disabled={loading}
             >
               {loading ? (
@@ -165,7 +172,7 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               New to Foodie?{' '}
-              <Link to="/signup" className="text-red-500 font-semibold hover:text-red-600 hover:underline">
+              <Link to="/signup" style={{ color: '#E23744', fontWeight: 600 }} className="hover:underline">
                 Create an account
               </Link>
             </p>

@@ -76,6 +76,11 @@ const Cart = () => {
     0
   );
 
+  const cartItemCount = Object.values(cart).reduce(
+    (sum, { qty }) => sum + qty,
+    0
+  );
+
   const handlePlaceOrder = async () => {
     if (!selectedRestaurant) {
       setToast({ message: 'Please select a restaurant first', type: 'error' });
@@ -107,10 +112,7 @@ const Cart = () => {
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
       setSelectedRestaurant(null);
-      setToast({ message: 'Order placed successfully!', type: 'success' });
-      setTimeout(() => {
-        navigate('/user');
-      }, 1500);
+      setToast({ message: 'Thank you! Your order is placed and will be delivered soon.', type: 'success' });
     } catch (error) {
       console.error('Error placing order:', error);
       setToast({ message: 'Failed to place order', type: 'error' });
@@ -122,13 +124,15 @@ const Cart = () => {
       <div className="bg-white min-h-screen">
         <Navbar />
         <div className="container py-12 text-center">
-          <h2 className="text-2xl font-bold mb-4">No Restaurant Selected</h2>
-          <p className="text-gray-600 mb-6">Please select a restaurant and add items to your cart.</p>
+  
+          <h2 className="text-2xl font-bold mb-4" style={{ color: '#1C1C1C' }}>Thank you! Your order is placed and will be delivered soon.</h2>
+          <p className="text-gray-600 mb-6">We're preparing your delicious meal!</p>
           <button
             onClick={() => navigate('/user')}
-            className="btn btn-primary"
+            className="btn-zomato"
+            style={{ padding: '12px 24px', fontSize: '16px' }}
           >
-            Browse Restaurants
+            Browse More Restaurants
           </button>
         </div>
       </div>
@@ -145,7 +149,10 @@ const Cart = () => {
         />
       )}
 
-      <Navbar />
+      <Navbar 
+        cartItemCount={cartItemCount}
+        onCartClick={() => navigate('/cart')}
+      />
 
       <div className="container py-8">
         {/* Header */}
@@ -168,7 +175,7 @@ const Cart = () => {
             <p className="text-gray-600 mb-6">Add delicious items to get started!</p>
             <button
               onClick={() => navigate('/user')}
-              className="btn btn-primary"
+              className="btn-zomato"
             >
               Browse Restaurants
             </button>
@@ -177,7 +184,7 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="order-card">
                 <h2 className="text-xl font-bold mb-6">Cart Items</h2>
                 <div className="space-y-4">
                   {Object.values(cart).map(({ item, qty }) => (
@@ -237,7 +244,7 @@ const Cart = () => {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+              <div className="order-card sticky top-24">
                 <h2 className="text-xl font-bold mb-6">Order Summary</h2>
 
                 <div className="space-y-3 mb-6">
@@ -263,7 +270,14 @@ const Cart = () => {
 
                 <button
                   onClick={handlePlaceOrder}
-                  className="btn-place-order"
+                  className="w-full rounded-lg py-3 px-5 font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+                  style={{ 
+                    backgroundColor: '#E23744',
+                    color: 'white',
+                    marginTop: '1rem'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#C92A37'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#E23744'}
                 >
                   Place Order
                 </button>

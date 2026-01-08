@@ -13,7 +13,15 @@ export const initSocket = (token) => {
       token: token,
     },
     transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 5,
   });
+
+  // Also set token in headers for compatibility
+  socket.io.opts.extraHeaders = {
+    Authorization: `Bearer ${token}`
+  };
 
   socket.on('connect', () => {
     console.log('Socket connected:', socket.id);

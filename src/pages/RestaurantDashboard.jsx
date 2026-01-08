@@ -44,14 +44,20 @@ const RestaurantDashboard = () => {
 
     if (socket) {
       const handleNewNotification = (notification) => {
-        console.log('New notification received:', notification);
+        console.log('New notification received in RestaurantDashboard:', notification);
         setNotifications((prev) => {
-          if (prev.find(n => n._id === notification._id)) {
+          if (prev.find(n => n._id === notification._id || n.id === notification._id)) {
             return prev;
           }
           return [notification, ...prev];
         });
-        setToast({ message: notification.message, type: 'info' });
+        // Show toast notification
+        window.dispatchEvent(new CustomEvent('app-toast', {
+          detail: { 
+            message: notification.message || notification.title || 'New notification',
+            type: 'info'
+          }
+        }));
       };
 
       socket.on('new_notification', handleNewNotification);
@@ -60,6 +66,17 @@ const RestaurantDashboard = () => {
         socket.off('new_notification', handleNewNotification);
       };
     }
+  }, []);
+
+  // Listen for global toasts
+  useEffect(() => {
+    const handleToast = (event) => {
+      const { message, type } = event.detail;
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 4000);
+    };
+    window.addEventListener('app-toast', handleToast);
+    return () => window.removeEventListener('app-toast', handleToast);
   }, []);
 
 
@@ -211,7 +228,7 @@ const RestaurantDashboard = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Restaurant Dashboard</h1>
           <button
-            className="btn btn-primary"
+            className="btn-zomato"
             onClick={() => setShowRestaurantForm(true)}
           >
             Add New Restaurant
@@ -221,7 +238,7 @@ const RestaurantDashboard = () => {
         {/* Restaurant Selection */}
         {restaurants.length > 0 ? (
           <>
-            <div className="card mb-6">
+            <div className="order-card mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   {selectedRestaurant?.image_url && (
@@ -267,7 +284,7 @@ const RestaurantDashboard = () => {
 
             {/* Dashboard Content */}
             {selectedRestaurant && (
-              <div className="card">
+              <div className="order-card">
                 <div className="flex border-b mb-6">
                   <button
                     className={`px-4 py-2 font-medium ${activeTab === 'orders'
@@ -295,7 +312,7 @@ const RestaurantDashboard = () => {
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl">Active Orders</h2>
                       <button
-                        className="btn btn-secondary text-sm"
+                        className="btn-zomato-outline"
                         onClick={() => fetchRestaurantOrders(selectedRestaurant.id)}
                       >
                         Refresh
@@ -370,7 +387,8 @@ const RestaurantDashboard = () => {
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl">Menu Items</h2>
                       <button
-                        className="btn btn-primary text-sm"
+                        className="btn-zomato"
+                        style={{ fontSize: '14px', padding: '10px 20px' }}
                         onClick={() => setShowDishForm(true)}
                       >
                         Add New Dish
@@ -418,11 +436,12 @@ const RestaurantDashboard = () => {
             )}
           </>
         ) : (
-          <div className="card text-center py-12">
+          <div className="order-card text-center py-12">
             <h2 className="text-xl font-semibold mb-2">Welcome via Restaurant Dashboard</h2>
             <p className="text-secondary mb-6">You don't have any restaurants yet.</p>
             <button
-              className="btn btn-primary btn-lg"
+              className="btn-zomato"
+              style={{ fontSize: '16px', padding: '14px 28px' }}
               onClick={() => setShowRestaurantForm(true)}
             >
               Create Your First Restaurant

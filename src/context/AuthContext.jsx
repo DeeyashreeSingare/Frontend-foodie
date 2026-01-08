@@ -86,7 +86,19 @@ export const AuthProvider = ({ children }) => {
   const signin = async (email, password) => {
     try {
       const response = await authAPI.signin({ email, password });
-      const { accessToken, ...userData } = response.data;
+      console.log('Signin response:', response.data); // Debug log
+      
+      const accessToken = response.data.accessToken || response.data.token;
+      const userData = {
+        id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+        role: response.data.role,
+      };
+      
+      if (!accessToken) {
+        throw new Error('No token received from server');
+      }
       
       // Store token and user
       if (typeof window !== 'undefined') {
@@ -101,9 +113,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userData };
     } catch (error) {
+      console.error('Signin error:', error);
       return {
         success: false,
-        error: error.response?.data?.message || 'Login failed',
+        error: error.response?.data?.message || error.message || 'Login failed. Please check your credentials.',
       };
     }
   };

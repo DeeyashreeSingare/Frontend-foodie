@@ -1,7 +1,8 @@
 import React from 'react';
 
 const OrderStatus = ({ status }) => {
-  const statusClass = `status-badge status-${status.toLowerCase().replace('_', '')}`;
+  const statusKey = status.toLowerCase().replace('_', '');
+  const statusClass = `status-badge status-${statusKey}`;
   
   const statusLabels = {
     pending: 'Pending',
@@ -9,12 +10,20 @@ const OrderStatus = ({ status }) => {
     preparing: 'Preparing',
     ready: 'Ready',
     picked_up: 'Picked Up',
+    on_the_way: 'On The Way',
     delivered: 'Delivered',
     cancelled: 'Cancelled',
   };
 
   return (
-    <span className={statusClass}>
+    <span className={statusClass} style={{ 
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '6px 12px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: 600
+    }}>
       {statusLabels[status] || status}
     </span>
   );

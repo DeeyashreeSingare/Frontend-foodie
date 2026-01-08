@@ -8,8 +8,8 @@ const NotificationPanel = ({ onClose }) => {
 
   useEffect(() => {
     fetchNotifications();
-    // Refresh notifications every 5 seconds
-    const interval = setInterval(fetchNotifications, 5000);
+    // Refresh notifications every 10 seconds to get all saved notifications
+    const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -18,7 +18,14 @@ const NotificationPanel = ({ onClose }) => {
       const response = await notificationAPI.getAll();
       const notificationsData = response.data || [];
       console.log('Fetched notifications in panel:', notificationsData);
-      setNotifications(Array.isArray(notificationsData) ? notificationsData : []);
+      const allNotifications = Array.isArray(notificationsData) ? notificationsData : [];
+      // Sort by date (newest first)
+      allNotifications.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.createdAt || 0);
+        const dateB = new Date(b.created_at || b.createdAt || 0);
+        return dateB - dateA;
+      });
+      setNotifications(allNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setNotifications([]);

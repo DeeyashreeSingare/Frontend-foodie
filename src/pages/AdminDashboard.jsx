@@ -60,7 +60,7 @@ const AdminDashboard = () => {
         {/* Stats Overview */}
         <div className="grid mb-4">
           {stats.map((stat, index) => (
-            <div key={index} className="card flex flex-col items-center justify-center p-6">
+            <div key={index} className="order-card flex flex-col items-center justify-center p-6">
               <span className="text-3xl font-bold mb-2" style={{ color: `var(--${stat.color})` }}>
                 {stat.value}
               </span>
@@ -70,10 +70,10 @@ const AdminDashboard = () => {
         </div>
 
         {/* Restaurants Management */}
-        <div className="card mt-4">
+        <div className="order-card mt-4">
           <div className="flex justify-between items-center mb-4">
             <h2>Registered Restaurants</h2>
-            <button className="btn btn-primary" onClick={() => showToast('Add Restaurant feature coming soon', 'info')}>
+            <button className="btn-zomato" onClick={() => showToast('Add Restaurant feature coming soon', 'info')}>
               Add Restaurant
             </button>
           </div>
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
                       <td style={{ padding: '12px' }}>{restaurant.phone}</td>
                       <td style={{ padding: '12px' }}>
                         <button
-                          className="btn btn-secondary text-sm"
+                          className="btn-zomato-outline text-sm"
                           onClick={() => showToast(`Edit ${restaurant.name} feature coming soon`, 'info')}
                         >
                           Manage
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* System Notifications */}
-        <div className="card mt-4">
+        <div className="order-card mt-4">
           <h2 className="mb-4">System Notifications</h2>
           {notifications.length === 0 ? (
             <p className="text-secondary">No active notifications</p>

@@ -30,14 +30,20 @@ const RiderDashboard = () => {
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
-      console.log('New notification received:', notification);
+      console.log('New notification received in RiderDashboard:', notification);
       setNotifications((prev) => {
-        if (prev.find(n => n._id === notification._id)) {
+        if (prev.find(n => n._id === notification._id || n.id === notification._id)) {
           return prev;
         }
         return [notification, ...prev];
       });
-      setToast({ message: notification.message, type: 'info' });
+      // Show toast notification
+      window.dispatchEvent(new CustomEvent('app-toast', {
+        detail: { 
+          message: notification.message || notification.title || 'New notification',
+          type: 'info'
+        }
+      }));
     };
 
     socket.on('new_notification', handleNewNotification);
@@ -48,6 +54,17 @@ const RiderDashboard = () => {
       }
     };
   }, [setNotifications]);
+
+  // Listen for global toasts
+  useEffect(() => {
+    const handleToast = (event) => {
+      const { message, type } = event.detail;
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 4000);
+    };
+    window.addEventListener('app-toast', handleToast);
+    return () => window.removeEventListener('app-toast', handleToast);
+  }, []);
 
   const fetchNotifications = async () => {
     try {
@@ -163,7 +180,7 @@ const RiderDashboard = () => {
 
       <div className="container">
         {/* Tabs */}
-        <div className="card mb-4 min-h-[500px]">
+        <div className="order-card mb-4 min-h-[500px]">
           <div className="flex gap-4 mb-6 border-b pb-4">
             <button
               className={`px-4 py-2 font-medium transition-colors ${activeTab === 'available'
@@ -229,7 +246,8 @@ const RiderDashboard = () => {
                         </div>
 
                         <button
-                          className="btn btn-primary w-full"
+                          className="btn-zomato"
+                          style={{ width: '100%' }}
                           onClick={() => handleAcceptOrder(order.id)}
                         >
                           Accept Delivery
@@ -284,7 +302,8 @@ const RiderDashboard = () => {
                             {availableStatuses.map((status) => (
                               <button
                                 key={status}
-                                className="btn btn-success w-full"
+                                className="btn-zomato"
+                                style={{ width: '100%', background: '#60B246' }}
                                 onClick={() => handleUpdateStatus(order.id, status)}
                               >
                                 Mark as {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}

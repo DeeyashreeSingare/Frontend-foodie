@@ -72,44 +72,71 @@ const DishForm = ({ restaurantId, dish, onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold mb-4">
+        <div 
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]" 
+            style={{ backdropFilter: 'blur(4px)' }} 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-xl w-full max-w-md mx-auto my-auto max-h-[75vh] overflow-y-auto shadow-2xl" 
+                style={{ 
+                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                    margin: 'auto',
+                    position: 'relative',
+                    width: '90%',
+                    maxWidth: '450px',
+                    padding: '24px'
+                }} 
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold" style={{ color: '#1C1C1C' }}>
                     {dish ? 'Edit Dish' : 'Add New Dish'}
                 </h2>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                        style={{ fontSize: '28px', lineHeight: '1', cursor: 'pointer' }}
+                    >
+                        ×
+                    </button>
+                </div>
 
                 {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Dish Name</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                            className="input-zomato"
+                            style={{ padding: '10px 14px', fontSize: '14px' }}
+                            placeholder="Enter dish name"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>Description</label>
                         <textarea
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                            className="input-zomato"
                             rows="3"
+                            placeholder="Describe the dish"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                        <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>Price (₹)</label>
                         <input
                             type="number"
                             step="0.01"
@@ -118,61 +145,64 @@ const DishForm = ({ restaurantId, dish, onClose, onSuccess }) => {
                             value={formData.price}
                             onChange={handleChange}
                             required
-                            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                            className="input-zomato"
                             placeholder="Enter price in ₹"
                         />
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 p-4 border rounded-lg" style={{ borderColor: '#E8E8E8', backgroundColor: '#F9FAFB' }}>
                         <input
                             type="checkbox"
                             id="is_available"
                             name="is_available"
                             checked={formData.is_available}
                             onChange={handleChange}
-                            className="rounded text-blue-600 focus:ring-blue-500"
+                            className="w-5 h-5 rounded text-zomato-red focus:ring-zomato-red"
+                            style={{ accentColor: '#E23744' }}
                         />
-                        <label htmlFor="is_available" className="text-sm font-medium text-gray-700">Available</label>
+                        <label htmlFor="is_available" className="text-sm font-semibold" style={{ color: '#374151' }}>Available for order</label>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                        <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>Dish Image</label>
                         <input
                             type="file"
                             name="image"
                             onChange={handleFileChange}
                             accept="image/*"
-                            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                            className="input-zomato"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Or Image URL</label>
+                        <label className="block text-sm font-semibold mb-2" style={{ color: '#374151' }}>Or Image URL</label>
                         <input
                             type="url"
                             name="imageUrl"
                             value={formData.imageUrl}
                             onChange={handleChange}
                             placeholder="https://example.com/image.jpg"
-                            className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                            className="input-zomato"
                         />
                     </div>
 
-                    <div className="flex gap-3 justify-end pt-4">
+                    <div className="flex gap-3 justify-end pt-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                            className="btn-zomato-outline"
+                            style={{ padding: '10px 20px', fontSize: '14px' }}
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+                            className="btn-zomato"
+                            style={{ padding: '10px 20px', fontSize: '14px' }}
                             disabled={loading}
                         >
-                            {loading ? 'Saving...' : 'Save Dish'}
+                            {loading ? 'Saving...' : dish ? 'Update' : 'Add Dish'}
                         </button>
                     </div>
                 </form>

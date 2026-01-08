@@ -17,7 +17,40 @@ export const SocketProvider = ({ children }) => {
 
   const { isAuthenticated, user, loading } = authContext;
   const [orders, setOrders] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState(() => {
+    // Load notifications from localStorage if available
+    const saved = localStorage.getItem('notifications');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    if (notifications.length > 0) {
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  // Fetch all notifications from backend on mount
+  useEffect(() => {
+    if (loading) return;
+    if (!isAuthenticated || !isAuthenticated()) return;
+
+    const fetchAllNotifications = async () => {
+      try {
+        const { notificationAPI } = await import('../services/api');
+        const response = await notificationAPI.getAll();
+        const fetchedNotifications = response.data || [];
+        console.log('SocketContext: Fetched all notifications:', fetchedNotifications);
+        if (Array.isArray(fetchedNotifications) && fetchedNotifications.length > 0) {
+          setNotifications(fetchedNotifications);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications in SocketContext:', error);
+      }
+    };
+
+    fetchAllNotifications();
+  }, [isAuthenticated, loading]);
 
   useEffect(() => {
     // Wait for auth to finish loading before checking authentication
@@ -25,11 +58,73 @@ export const SocketProvider = ({ children }) => {
     if (!isAuthenticated || !isAuthenticated()) return;
 
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket) {
+      console.warn('Socket not initialized');
+      return;
+    }
 
-    // Listen for order updates
+    console.log('SocketContext: Setting up listeners, socket connected:', socket.connected);
+
+
+    // Listen for new notifications and save them
+    socket.on('new_notification', (notification) => {
+      console.log('SocketContext - New notification received:', notification);
+      setNotifications((prev) => {
+        // Check if notification already exists
+        const notificationId = notification._id || notification.id;
+        const exists = prev.find(n => {
+          const nId = n._id || n.id;
+          return nId && notificationId && nId.toString() === notificationId.toString();
+        });
+        if (exists) {
+          return prev;
+        }
+        // Add new notification at the beginning
+        const newNotification = {
+          ...notification,
+          _id: notification._id || notification.id,
+          read: notification.read || false,
+          createdAt: notification.createdAt || notification.created_at || new Date().toISOString()
+        };
+        const updated = [newNotification, ...prev];
+        // Save to localStorage
+        localStorage.setItem('notifications', JSON.stringify(updated));
+        return updated;
+      });
+      // Show toast notification like Zomato
+      window.dispatchEvent(new CustomEvent('app-toast', {
+        detail: { 
+          message: notification.message || notification.title || 'New notification',
+          type: notification.type || 'info'
+        }
+      }));
+    });
+
+    // Listen for order updates and show notifications
     socket.on('order_update', (orderData) => {
-      console.log('Order update received:', orderData);
+      console.log('Order update received in SocketContext:', orderData);
+      
+      // Show notification for status changes
+      if (orderData.status) {
+        const statusMessages = {
+          'confirmed': 'Your order has been confirmed! 🎉',
+          'preparing': 'Your order is being prepared 👨‍🍳',
+          'ready': 'Your order is ready for pickup! 📦',
+          'picked_up': 'Your order has been picked up! 🛵',
+          'on_the_way': 'Your order is on the way! 🚀',
+          'delivered': 'Your order has been delivered! ✅',
+        };
+        
+        const message = statusMessages[orderData.status] || `Order #${orderData.id} status updated to ${orderData.status}`;
+        
+        window.dispatchEvent(new CustomEvent('app-toast', {
+          detail: { 
+            message: message,
+            type: orderData.status === 'delivered' ? 'success' : 'info'
+          }
+        }));
+      }
+      
       setOrders((prevOrders) => {
         const index = prevOrders.findIndex((o) => o.id === orderData.id);
         if (index >= 0) {
@@ -39,21 +134,6 @@ export const SocketProvider = ({ children }) => {
         }
         return [...prevOrders, orderData];
       });
-    });
-
-    // Listen for new notifications
-    socket.on('new_notification', (notification) => {
-      console.log('SocketContext - New notification received:', notification);
-      setNotifications((prev) => {
-        if (prev.find(n => n._id === notification._id)) {
-          return prev;
-        }
-        return [notification, ...prev];
-      });
-      // Trigger a global custom event for toasts if needed, or handle here
-      window.dispatchEvent(new CustomEvent('app-toast', {
-        detail: { message: notification.message, type: 'info' }
-      }));
     });
 
     return () => {
@@ -86,7 +166,15 @@ export const SocketProvider = ({ children }) => {
   };
 
   const removeNotification = (notificationId) => {
-    setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
+    setNotifications((prev) => {
+      const updated = prev.filter((n) => {
+        const nId = n._id || n.id;
+        const notifId = notificationId._id || notificationId.id || notificationId;
+        return nId && notifId && nId.toString() !== notifId.toString();
+      });
+      localStorage.setItem('notifications', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const value = {

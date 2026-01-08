@@ -49,10 +49,13 @@ const UserDashboard = () => {
     fetchNotifications();
   }, []);
 
-  // Listen for global toasts from SocketContext
+  // Listen for global toasts from SocketContext (real-time notifications)
   useEffect(() => {
     const handleToast = (event) => {
-      setToast(event.detail);
+      const { message, type } = event.detail;
+      setToast({ message, type });
+      // Auto-close after 4 seconds
+      setTimeout(() => setToast(null), 4000);
     };
     window.addEventListener('app-toast', handleToast);
     return () => window.removeEventListener('app-toast', handleToast);
@@ -147,6 +150,11 @@ const UserDashboard = () => {
     0
   );
 
+  const cartItemCount = Object.values(cart).reduce(
+    (sum, { qty }) => sum + qty,
+    0
+  );
+
   const handlePlaceOrder = async () => {
     if (!selectedRestaurant) return;
 
@@ -175,7 +183,7 @@ const UserDashboard = () => {
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
       setSelectedRestaurant(null);
-      showToast('Order placed successfully!', 'success');
+      showToast('Thank you! Your order is placed and will be delivered soon.', 'success');
     } catch (error) {
       console.error('Error placing order:', error);
       showToast('Failed to place order', 'error');
@@ -198,9 +206,15 @@ const UserDashboard = () => {
         toggleNotifications={() => setShowNotifications(!showNotifications)}
         notificationCount={unreadCount}
         showSearch={true}
+        cartItemCount={cartItemCount}
+        onCartClick={() => navigate('/cart')}
         onMyOrdersClick={() => {
           setSelectedRestaurant(null);
           setActiveFilter('Orders');
+        }}
+        onHomeClick={() => {
+          setSelectedRestaurant(null);
+          localStorage.removeItem('selectedRestaurant');
         }}
         onSearch={setSearchQuery}
       />
@@ -212,30 +226,62 @@ const UserDashboard = () => {
       {/* Hero Section - Conditional rendering if not viewing specific features */}
       {!selectedRestaurant && (
         <>
-          {/* Breadcrumbs / Filter Tab */}
-          <div className="sticky top-0 bg-white z-40 border-b border-gray-100">
-            <div className="container py-4 flex gap-8 overflow-x-auto">
-              <div className={`cursor-pointer flex items-center gap-2 pb-2 ${activeFilter === 'Delivery' ? 'border-b-2 border-primary text-primary' : 'text-gray-500'}`} onClick={() => setActiveFilter('Delivery')}>
-                <div className={`p-2 rounded-full ${activeFilter === 'Delivery' ? 'bg-yellow-100' : 'bg-gray-100'}`}>🛵</div>
-                <span className="text-xl font-medium">Delivery</span>
+          {/* Breadcrumbs / Filter Tab - Zomato Style */}
+          <div className="sticky top-0 bg-white z-40 border-b" style={{ borderColor: '#E8E8E8', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)' }}>
+            <div className="container py-3 flex gap-6 overflow-x-auto" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+              <div 
+                className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Delivery' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderBottomColor: activeFilter === 'Delivery' ? '#E23744' : 'transparent',
+                  color: activeFilter === 'Delivery' ? '#E23744' : '#6B7280'
+                }}
+                onClick={() => setActiveFilter('Delivery')}
+              >
+                <span className="text-lg">🛵</span>
+                <span className="text-base font-semibold whitespace-nowrap">Delivery</span>
               </div>
-              <div className={`cursor-pointer flex items-center gap-2 pb-2 ${activeFilter === 'Dining Out' ? 'border-b-2 border-primary text-primary' : 'text-gray-500'}`} onClick={() => setActiveFilter('Dining Out')}>
-                <div className={`p-2 rounded-full ${activeFilter === 'Dining Out' ? 'blue-100' : 'bg-gray-100'}`}>🍽️</div>
-                <span className="text-xl font-medium">Dining Out</span>
+              <div 
+                className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Dining Out' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderBottomColor: activeFilter === 'Dining Out' ? '#E23744' : 'transparent',
+                  color: activeFilter === 'Dining Out' ? '#E23744' : '#6B7280'
+                }}
+                onClick={() => setActiveFilter('Dining Out')}
+              >
+                <span className="text-lg">🍽️</span>
+                <span className="text-base font-semibold whitespace-nowrap">Dining Out</span>
               </div>
-              <div className={`cursor-pointer flex items-center gap-2 pb-2 ${activeFilter === 'Nightlife' ? 'border-b-2 border-primary text-primary' : 'text-gray-500'}`} onClick={() => setActiveFilter('Nightlife')}>
-                <div className={`p-2 rounded-full ${activeFilter === 'Nightlife' ? 'bg-purple-100' : 'bg-gray-100'}`}>🍷</div>
-                <span className="text-xl font-medium">Nightlife</span>
+              <div 
+                className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Nightlife' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderBottomColor: activeFilter === 'Nightlife' ? '#E23744' : 'transparent',
+                  color: activeFilter === 'Nightlife' ? '#E23744' : '#6B7280'
+                }}
+                onClick={() => setActiveFilter('Nightlife')}
+              >
+                <span className="text-lg">🍷</span>
+                <span className="text-base font-semibold whitespace-nowrap">Nightlife</span>
               </div>
-              <div className={`cursor-pointer flex items-center gap-2 pb-2 ${activeFilter === 'Orders' ? 'border-b-2 border-primary text-primary' : 'text-gray-500'}`} onClick={() => setActiveFilter('Orders')}>
-                <div className={`p-2 rounded-full ${activeFilter === 'Orders' ? 'bg-blue-100' : 'bg-gray-100'}`}>📦</div>
-                <span className="text-xl font-medium">Orders</span>
+              <div 
+                className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Orders' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderBottomColor: activeFilter === 'Orders' ? '#E23744' : 'transparent',
+                  color: activeFilter === 'Orders' ? '#E23744' : '#6B7280'
+                }}
+                onClick={() => setActiveFilter('Orders')}
+              >
+                <span className="text-lg">📦</span>
+                <span className="text-base font-semibold whitespace-nowrap">Orders</span>
               </div>
             </div>
           </div>
 
-          <div className="container mt-8">
-            {activeFilter !== 'Orders' && <h2 className="text-3xl font-medium mb-8">Delivery Restaurants in Your City</h2>}
+          <div className="container mt-6" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
+            {activeFilter !== 'Orders' && (
+              <h2 className="text-2xl font-semibold mb-6" style={{ color: '#1C1C1C' }}>
+                Delivery Restaurants in Your City
+              </h2>
+            )}
 
             {activeFilter !== 'Orders' && (
               loading ? (
@@ -245,7 +291,7 @@ const UserDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="grid mb-12">
+                <div className="grid mb-12" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
                   {restaurants
                     .filter(rest => {
                       if (!searchQuery) return true;
@@ -257,15 +303,17 @@ const UserDashboard = () => {
                     .map((rest) => (
                       <div
                         key={rest.id}
-                        className="card cursor-pointer group"
+                        className="restaurant-card"
                         onClick={() => fetchMenu(rest)}
+                        style={{ cursor: 'pointer' }}
                       >
-                        {/* Image Placeholder */}
-                        <div className="h-48 bg-gray-200 relative overflow-hidden">
+                        {/* Restaurant Image */}
+                        <div style={{ height: '180px', overflow: 'hidden', position: 'relative', borderRadius: '12px 12px 0 0' }}>
                           <img
                             src={getImageURL(rest.image_url) || `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`}
                             alt={rest.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="restaurant-card-image"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                               if (e.target.src !== `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`) {
                                 e.target.src = `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`;
@@ -274,25 +322,30 @@ const UserDashboard = () => {
                           />
                         </div>
 
-                        <div className="card-body p-4">
-                          <div className="flex justify-between items-start mb-2 gap-2">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <h3 className="text-lg font-bold m-0 truncate">{rest.name}</h3>
-                              <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">30-40 min</span>
-                            </div>
-                            <div className="bg-green-700 text-white px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 flex-shrink-0">
-                              4.2 <span className="text-[8px]">★</span>
+                        <div className="restaurant-card-content" style={{ padding: '16px' }}>
+                          <div className="restaurant-card-title" style={{ marginBottom: '8px' }}>
+                            <span style={{ flex: 1, minWidth: 0, fontSize: '18px', fontWeight: 600, color: '#1C1C1C' }} className="truncate">{rest.name}</span>
+                            <div className="restaurant-card-rating" style={{ fontSize: '13px', padding: '4px 8px' }}>
+                              4.2 <span style={{ fontSize: '10px' }}>★</span>
                             </div>
                           </div>
 
-                          <div className="flex justify-between items-center text-xs text-gray-500 mb-2 gap-2">
-                            <span className="truncate flex-1 min-w-0">Italian, Fast Food</span>
-                            <span className="flex-shrink-0 whitespace-nowrap">₹200 for two</span>
+                          <div className="restaurant-card-cuisine" style={{ fontSize: '13px', color: '#6B7280', marginBottom: '12px', lineHeight: '1.4' }}>
+                            {rest.description || 'Italian, Fast Food'} • ₹200 for two
                           </div>
 
-                          <div className="border-t pt-3 mt-2 flex items-center gap-2 text-[10px] text-gray-400">
-                            <span className="w-3.5 h-3.5 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100 italic font-serif">i</span>
-                            2500+ orders placed from here recently
+                          <div className="restaurant-card-info" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
+                            <span className="restaurant-card-delivery-time" style={{ padding: '4px 8px', fontSize: '11px' }}>30-40 min</span>
+                            <span style={{ fontSize: '11px', color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ 
+                                width: '8px', 
+                                height: '8px', 
+                                borderRadius: '50%', 
+                                background: '#60B246', 
+                                display: 'inline-block'
+                              }}></span>
+                              2500+ orders
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -301,47 +354,56 @@ const UserDashboard = () => {
               )
             )}
 
-            {/* Orders View - ADDED THIS SECTION */}
+            {/* Orders View - Clean Design */}
             {activeFilter === 'Orders' && (
               <div className="mb-12">
                 {orders.length === 0 ? (
-                  <div className="text-center py-12 text-secondary">
-                    <p className="text-xl mb-2">No past orders</p>
-                    <p>Go to Delivery to order some delicious food!</p>
+                  <div className="text-center py-16">
+                    <div className="text-6xl mb-4">📦</div>
+                    <p className="text-xl font-semibold mb-2" style={{ color: '#1C1C1C' }}>No past orders</p>
+                    <p style={{ color: '#6B7280' }}>Go to Delivery to order some delicious food!</p>
                   </div>
                 ) : (
-                  <div className="grid gap-6">
+                  <div className="flex flex-col gap-5">
                     {orders.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-4">
+                      <div 
+                        key={order.id} 
+                        className="bg-white rounded-xl p-6 border"
+                        style={{ 
+                          borderColor: '#E8E8E8',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                        }}
+                      >
+                        <div className="flex justify-between items-start mb-5">
                           <div>
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold">Order #{order.id}</h3>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-bold" style={{ color: '#1C1C1C' }}>Order #{order.id}</h3>
                               <OrderStatus status={order.status} />
                             </div>
-                            <p className="text-secondary text-sm mt-1">
+                            <p className="text-sm" style={{ color: '#6B7280' }}>
                               {new Date(order.created_at).toLocaleString()}
                             </p>
                           </div>
-                          <p className="font-bold text-xl">₹{parseFloat(order.total_amount || 0).toFixed(2)}</p>
+                          <p className="font-bold text-2xl" style={{ color: '#1C1C1C' }}>₹{parseFloat(order.total_amount || 0).toFixed(2)}</p>
                         </div>
 
-                        <div className="border-t border-b py-3 my-3">
-                          <p className="font-medium mb-2 text-sm text-gray-500">ITEMS</p>
-                          <div className="space-y-1">
+                        <div className="border-t border-b py-4 my-4" style={{ borderColor: '#F3F4F6' }}>
+                          <p className="font-semibold mb-3 text-sm uppercase tracking-wide" style={{ color: '#6B7280' }}>Items</p>
+                          <div className="space-y-2">
                             {order.items?.map((item, index) => (
-                              <div key={index} className="flex justify-between text-sm">
-                                <span>{item.quantity}x {item.name}</span>
-                                <span className="text-secondary">₹{item.price * item.quantity}</span>
+                              <div key={index} className="flex justify-between text-base">
+                                <span style={{ color: '#1C1C1C' }}>{item.quantity}x {item.name}</span>
+                                <span className="font-semibold" style={{ color: '#1C1C1C' }}>₹{(item.price * item.quantity).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center text-sm">
-                          <div className="text-secondary">
-                            My Delivery Address: <span className="text-gray-900">{order.delivery_address}</span>
-                          </div>
+                        <div className="text-sm">
+                          <p style={{ color: '#6B7280' }}>
+                            <span className="font-medium">Delivery Address:</span>{' '}
+                            <span style={{ color: '#1C1C1C' }}>{order.delivery_address}</span>
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -353,84 +415,87 @@ const UserDashboard = () => {
         </>
       )}
 
-      {/* Menu Modal / View */}
+      {/* Menu Page - Grid Layout Like Home Page */}
       {selectedRestaurant && (
         <div className="fixed inset-0 z-[100] bg-white overflow-y-auto">
-          {/* Menu Header */}
-          <div className="sticky top-0 bg-white shadow-sm z-10 p-4">
-            <div className="container flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <button onClick={() => setSelectedRestaurant(null)} className="text-xl p-2 hover:bg-gray-100 rounded-full">
-                  ←
-                </button>
-                <div>
-                  <h2 className="text-2xl font-bold m-0">{selectedRestaurant.name}</h2>
-                  <p className="text-sm text-gray-500">Italian, Fast Food • 30-40 min</p>
-                </div>
+          {/* Menu Items Grid - Like Restaurant Cards */}
+          <div className="container mx-auto px-4 sm:px-6 py-6">
+            {loadingMenu ? (
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin text-5xl mb-4">⏳</div>
+                <p className="text-gray-600 text-sm">Loading menu...</p>
               </div>
-
-              <div className="flex gap-4">
-                <button className="btn btn-secondary">🔍 Search in menu</button>
-                {Object.keys(cart).length > 0 && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => navigate('/cart')}
-                  >
-                    View Cart ({Object.keys(cart).length})
-                  </button>
-                )}
+            ) : menuItems.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-gray-600 text-base">No menu items available</p>
               </div>
-            </div>
-          </div>
-
-          <div className="container py-8">
-            {/* Menu List */}
-            <div className="max-w-4xl mx-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">Recommended</h3>
-                {Object.keys(cart).length > 0 && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => navigate('/cart')}
-                  >
-                    View Cart ({Object.keys(cart).length}) - ₹{cartTotal.toFixed(2)}
-                  </button>
-                )}
-              </div>
-              {loadingMenu ? (
-                <div className="loading">Loading menu...</div>
               ) : (
-                <div className="flex flex-col gap-6">
+              <>
+                <div className="grid mb-6">
                   {menuItems.map((item) => (
-                    <div key={item._id} className="flex justify-between items-start gap-4 pb-6 border-b border-gray-100">
-                      <div className="flex-1">
-                        <div className="w-4 h-4 border border-green-600 flex items-center justify-center rounded-sm mb-2">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                        </div>
-                        <h4 className="font-bold text-lg mb-1">{item.name}</h4>
-                        <p className="font-medium text-gray-700 mb-2">₹{item.price}</p>
-                        <p className="text-sm text-gray-500 line-clamp-2">{item.description || 'Delicious food item with amazing taste.'}</p>
+                    <div
+                      key={item._id}
+                      className="restaurant-card"
+                    >
+                      {/* Food Image */}
+                      <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+                        <img
+                          src={getImageURL(item.image_url) || `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`}
+                          alt={item.name}
+                          className="restaurant-card-image"
+                          onError={(e) => {
+                            if (e.target.src !== `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`) {
+                              e.target.src = `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`;
+                            }
+                          }}
+                        />
                       </div>
-                      <div className="relative img-dish-user bg-gray-100 overflow-hidden shrink-0 border shadow-sm">
-                        {item.image_url && (
-                          <img
-                            src={getImageURL(item.image_url)}
-                            alt={item.name}
-                            className="img-fit"
-                            onError={(e) => e.target.style.display = 'none'}
-                          />
-                        )}
-                        <div className="absolute bottom-0 left-0 w-full px-1 mb-1">
+
+                      <div className="restaurant-card-content">
+                        {/* Veg/Non-Veg Indicator */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-4 h-4 border-2 border-green-600 flex items-center justify-center rounded-sm">
+                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                          </div>
+                          <span className="text-xs font-semibold text-green-600 uppercase">VEG</span>
+                        </div>
+
+                        <div className="restaurant-card-title">
+                          <span style={{ flex: 1, minWidth: 0 }} className="truncate">{item.name}</span>
+                          <div className="restaurant-card-rating">
+                            ₹{item.price}
+                          </div>
+                        </div>
+
+                        <div className="restaurant-card-cuisine">
+                          {item.description || 'Delicious food item with amazing taste and quality ingredients.'}
+                      </div>
+
+                        <div className="restaurant-card-info">
+                          {/* Add to Cart Button */}
                           {cart[item._id] ? (
-                            <div className="flex items-center justify-between bg-white text-primary rounded shadow border border-primary font-bold text-xs">
-                              <button onClick={() => removeFromCart(item._id)} className="px-2 py-1 hover:bg-red-50">-</button>
-                              <span>{cart[item._id].qty}</span>
-                              <button onClick={() => addToCart(item)} className="px-2 py-1 hover:bg-red-50">+</button>
+                            <div className="flex items-center gap-2">
+                              <button 
+                                onClick={() => removeFromCart(item._id)} 
+                                className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-600 text-red-600 font-bold hover:bg-red-50 transition-colors"
+                              >
+                                −
+                              </button>
+                              <span className="text-sm font-semibold text-gray-900 min-w-[24px] text-center">
+                                {cart[item._id].qty}
+                              </span>
+                              <button 
+                                onClick={() => addToCart(item)} 
+                                className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-600 text-red-600 font-bold hover:bg-red-50 transition-colors"
+                              >
+                                +
+                              </button>
                             </div>
                           ) : (
                             <button
                               onClick={() => addToCart(item)}
-                              className="w-full bg-white text-primary py-1.5 rounded shadow border border-gray-200 font-bold hover:bg-gray-50 text-[10px] uppercase tracking-wide"
+                              className="btn-zomato"
+                              style={{ fontSize: '12px', padding: '8px 16px' }}
                             >
                               ADD
                             </button>
@@ -440,8 +505,28 @@ const UserDashboard = () => {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+
+                {/* View Cart Button - Below Items */}
+                {Object.keys(cart).length > 0 && (
+                  <div className="mt-6 mb-6">
+                    <button
+                      className="w-full rounded-lg py-3 px-5 font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+                      style={{ 
+                        backgroundColor: '#E23744',
+                        color: 'white'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#C92A37'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#E23744'}
+                      onClick={() => navigate('/cart')}
+                    >
+                      <span className="text-xl">🛒</span>
+                      <span>View Cart ({Object.keys(cart).length} items)</span>
+                      <span className="font-bold">₹{cartTotal.toFixed(2)}</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
