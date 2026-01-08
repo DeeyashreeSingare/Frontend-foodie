@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>foodie</title>
+    <style>
+      /* Fallback styles while React loads */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background-color: #f5f5f5;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      .loading-indicator {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: #fff;
+        text-align: center;
+        z-index: 9999;
+      }
+      .loading-indicator.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading-indicator" id="loading">
+      Loading application...
+    </div>
+    <div id="root">
+      <div style="padding: 50px; text-align: center;">
+        <h1>Initializing React Application...</h1>
+        <p>If you see this message for more than a few seconds, check the browser console for errors.</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Remove loading indicator once React loads
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loading = document.getElementById('loading');
+          if (loading) loading.classList.remove('show');
+        }, 1000);
+      });
+      
+      // Show any JavaScript errors
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+        const root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = '<div style="padding: 20px; color: red;"><h1>JavaScript Error</h1><p>' + e.message + '</p><p>Check console for details.</p></div>';
+        }
+      });
+      
+      console.log('HTML loaded, waiting for React...');
+    </script>
+  </body>
+</html>
