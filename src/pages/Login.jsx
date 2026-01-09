@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import './Login.css'; // Import the new CSS file
 
 const Login = () => {
   const navigate = useNavigate();
@@ -80,104 +81,84 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full" style={{ maxWidth: '400px' }}>
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1
-            style={{
-              fontSize: '4rem',
-              fontWeight: 900,
-              fontStyle: 'italic',
-              color: '#E23744',
-              letterSpacing: '-3px',
-              marginBottom: '0.5rem',
-              textShadow: '0 2px 4px rgba(226, 55, 68, 0.1)'
-            }}
-          >
-            foodie
-          </h1>
-          <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-            Discover the best food in your city
-          </p>
+    <div className="login-container">
+      <div className="login-card">
+        {/* Header */}
+        <div className="login-header">
+          <h1 className="brand-title">foodie</h1>
+          <p className="brand-subtitle">Discover the best food in your city</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100" style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)' }}>
-          <h2 className="text-3xl font-bold text-center mb-2" style={{ color: '#1C1C1C' }}>Login</h2>
-          <p className="text-center mb-6" style={{ color: '#6B7280' }}>Welcome back! Please login to your account.</p>
+        {/* Messages */}
+        {successMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-center">
+            {successMessage}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-center">
+            {error}
+          </div>
+        )}
 
-          {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-              {successMessage}
-            </div>
-          )}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Login</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="email">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="input-zomato"
-                style={{ width: '100%' }}
-                value={formData.email}
-                onChange={handleChange}
-                required
-                placeholder="Enter your email"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="password">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className="input-zomato"
-                style={{ width: '100%' }}
-                value={formData.password}
-                onChange={handleChange}
-                required
-                placeholder="Enter your password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn-zomato"
-              style={{ width: '100%', marginTop: '1rem' }}
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="animate-spin">⏳</span>
-                  Logging in...
-                </span>
-              ) : (
-                'Login'
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              New to Foodie?{' '}
-              <Link to="/signup" style={{ color: '#E23744', fontWeight: 600 }} className="hover:underline">
-                Create an account
-              </Link>
-            </p>
+        <form onSubmit={handleSubmit}>
+          <div className="login-form-group">
+            <label className="login-label" htmlFor="email">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="login-input"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="e.g. user@example.com"
+            />
           </div>
 
+          <div className="login-form-group">
+            <label className="login-label" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className="login-input"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="login-btn"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                <span>Logging in...</span>
+              </>
+            ) : (
+              'Login'
+            )}
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <p>
+            New to Foodie?{' '}
+            <Link to="/signup" className="create-account-link">
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </div>
