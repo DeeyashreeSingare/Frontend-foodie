@@ -20,12 +20,30 @@ const Cart = () => {
     const savedCart = localStorage.getItem('cart');
     const savedRestaurant = localStorage.getItem('selectedRestaurant');
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        // Cleanup: Remove items with undefined keys or invalid structure
+        const cleanedCart = Object.entries(parsedCart).reduce((acc, [key, value]) => {
+          if (key !== 'undefined' && key !== 'null' && value?.item?.id) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+        setCart(cleanedCart);
+
+        // Update localStorage if we cleaned anything
+        if (Object.keys(cleanedCart).length !== Object.keys(parsedCart).length) {
+          localStorage.setItem('cart', JSON.stringify(cleanedCart));
+        }
+      } catch (e) {
+        console.error('Error parsing cart:', e);
+        setCart({});
+      }
     }
     if (savedRestaurant) {
       setSelectedRestaurant(JSON.parse(savedRestaurant));
     }
-    
+
     // Check for pending order success toast
     const pendingToast = sessionStorage.getItem('orderSuccessToast');
     if (pendingToast) {
@@ -43,10 +61,10 @@ const Cart = () => {
 
   const addToCart = (item) => {
     setCart((prev) => {
-      const currentQty = prev[item._id]?.qty || 0;
+      const currentQty = prev[item.id]?.qty || 0;
       const newCart = {
         ...prev,
-        [item._id]: { item, qty: currentQty + 1 },
+        [item.id]: { item, qty: currentQty + 1 },
       };
       localStorage.setItem('cart', JSON.stringify(newCart));
       return newCart;
@@ -98,7 +116,7 @@ const Cart = () => {
 
     // Transform cart to expected items array
     const items = Object.values(cart).map(({ item, qty }) => ({
-      menu_item_id: item._id,
+      menu_item_id: item.id,
       quantity: qty,
     }));
 
@@ -117,36 +135,36 @@ const Cart = () => {
 
       const response = await orderAPI.create(orderData);
       addOrderToState(response.data.order);
-      
+
       // Mark that order was placed
       setOrderPlaced(true);
-      
+
       // Show success toast notification FIRST before clearing state
       const toastMessage = '🎉 Thank you! Your order is placed and will be delivered soon.';
-      setToast({ 
-        message: toastMessage, 
-        type: 'success' 
+      setToast({
+        message: toastMessage,
+        type: 'success'
       });
-      
+
       // Save toast to sessionStorage so it persists after state change
       sessionStorage.setItem('orderSuccessToast', JSON.stringify({
         message: toastMessage,
         type: 'success'
       }));
-      
+
       // Also trigger global toast event for consistency
       window.dispatchEvent(new CustomEvent('app-toast', {
-        detail: { 
+        detail: {
           message: toastMessage,
           type: 'success'
         }
       }));
-      
+
       // Clear cart and restaurant AFTER showing toast
       setCart({});
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
-      
+
       // Delay clearing selectedRestaurant to allow toast to show
       setTimeout(() => {
         setSelectedRestaurant(null);
@@ -170,7 +188,7 @@ const Cart = () => {
         )}
         <Navbar />
         <div className="container py-12 text-center">
-  
+
           <h2 className="text-2xl font-bold mb-4" style={{ color: '#1C1C1C' }}>Thank you! Your order is placed and will be delivered soon.</h2>
           <p className="text-gray-600 mb-6">We're preparing your delicious meal!</p>
           <button
@@ -219,7 +237,7 @@ const Cart = () => {
         />
       )}
 
-      <Navbar 
+      <Navbar
         cartItemCount={cartItemCount}
         onCartClick={() => navigate('/cart')}
       />
@@ -259,22 +277,24 @@ const Cart = () => {
                 <div className="space-y-4">
                   {Object.values(cart).map(({ item, qty }) => (
                     <div
-                      key={item._id}
+                      key={item.id}
                       className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
                     >
-                      {item.image_url && (
-                        <img
-                          src={getImageURL(item.image_url)}
-                          alt={item.name}
-                          className="w-24 h-24 object-cover rounded-lg"
-                          onError={(e) => (e.target.style.display = 'none')}
-                        />
-                      )}
+                      <img
+                        src={getImageURL(item.image_url) || `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`}
+                        alt={item.name}
+                        className="w-24 h-24 object-cover rounded-lg"
+                        onError={(e) => {
+                          if (e.target.src !== `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`) {
+                            e.target.src = `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop`;
+                          }
+                        }}
+                      />
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold text-lg">{item.name}</h3>
                           <button
-                            onClick={() => deleteFromCart(item._id)}
+                            onClick={() => deleteFromCart(item.id)}
                             className="text-red-500 hover:text-red-700 text-xl"
                             title="Remove item"
                           >
@@ -287,7 +307,7 @@ const Cart = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 border border-gray-300 rounded-lg">
                             <button
-                              onClick={() => removeFromCart(item._id)}
+                              onClick={() => removeFromCart(item.id)}
                               className="px-3 py-1 text-lg font-bold hover:bg-gray-100 transition-colors"
                             >
                               −
@@ -341,7 +361,7 @@ const Cart = () => {
                 <button
                   onClick={handlePlaceOrder}
                   className="w-full rounded-lg py-3 px-5 font-semibold text-lg transition-colors flex items-center justify-center gap-2"
-                  style={{ 
+                  style={{
                     backgroundColor: '#E23744',
                     color: 'white',
                     marginTop: '1rem'

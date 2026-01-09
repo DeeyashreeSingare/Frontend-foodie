@@ -25,13 +25,39 @@ const UserDashboard = () => {
   // Cart & Order State
   const [cart, setCart] = useState(() => {
     // Load cart from localStorage if available
-    const savedCart = localStorage.getItem('cart');
-    return savedCart ? JSON.parse(savedCart) : {};
+    try {
+      const savedCart = localStorage.getItem('cart');
+      if (!savedCart) return {};
+
+      const parsedCart = JSON.parse(savedCart);
+
+      // Cleanup: Remove items with undefined keys or invalid structure
+      const cleanedCart = Object.entries(parsedCart).reduce((acc, [key, value]) => {
+        if (key !== 'undefined' && key !== 'null' && value?.item?.id) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
+      // If cleanup changed something, update localStorage
+      if (Object.keys(cleanedCart).length !== Object.keys(parsedCart).length) {
+        localStorage.setItem('cart', JSON.stringify(cleanedCart));
+      }
+
+      return cleanedCart;
+    } catch (e) {
+      console.error('Error parsing cart:', e);
+      return {};
+    }
   }); // { itemId: { item, qty } }
   const [selectedRestaurant, setSelectedRestaurant] = useState(() => {
     // Load selected restaurant from localStorage if available
-    const savedRestaurant = localStorage.getItem('selectedRestaurant');
-    return savedRestaurant ? JSON.parse(savedRestaurant) : null;
+    try {
+      const savedRestaurant = localStorage.getItem('selectedRestaurant');
+      return savedRestaurant ? JSON.parse(savedRestaurant) : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [menuItems, setMenuItems] = useState([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
@@ -102,10 +128,10 @@ const UserDashboard = () => {
 
   const addToCart = (item) => {
     setCart((prev) => {
-      const currentQty = prev[item._id]?.qty || 0;
+      const currentQty = prev[item.id]?.qty || 0;
       const newCart = {
         ...prev,
-        [item._id]: { item, qty: currentQty + 1 },
+        [item.id]: { item, qty: currentQty + 1 },
       };
       localStorage.setItem('cart', JSON.stringify(newCart));
       return newCart;
@@ -147,7 +173,7 @@ const UserDashboard = () => {
 
     // Transform cart to expected items array
     const items = Object.values(cart).map(({ item, qty }) => ({
-      menu_item_id: item._id,
+      menu_item_id: item.id,
       quantity: qty,
     }));
 
@@ -166,23 +192,23 @@ const UserDashboard = () => {
 
       const response = await orderAPI.create(orderData);
       addOrderToState(response.data.order);
-      
+
       // Show success toast notification FIRST before clearing state
       showToast('🎉 Thank you! Your order is placed and will be delivered soon.', 'success');
-      
+
       // Also trigger global toast event for consistency
       window.dispatchEvent(new CustomEvent('app-toast', {
-        detail: { 
+        detail: {
           message: '🎉 Thank you! Your order is placed and will be delivered soon.',
           type: 'success'
         }
       }));
-      
+
       // Clear cart and restaurant AFTER showing toast
       setCart({});
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
-      
+
       // Delay clearing selectedRestaurant to allow toast to show
       setTimeout(() => {
         setSelectedRestaurant(null);
@@ -225,9 +251,9 @@ const UserDashboard = () => {
           {/* Breadcrumbs / Filter Tab - Zomato Style */}
           <div className="sticky top-0 bg-white z-40 border-b" style={{ borderColor: '#E8E8E8', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)' }}>
             <div className="container py-3 flex gap-6 overflow-x-auto" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
-              <div 
+              <div
                 className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Delivery' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderBottomColor: activeFilter === 'Delivery' ? '#E23744' : 'transparent',
                   color: activeFilter === 'Delivery' ? '#E23744' : '#6B7280'
                 }}
@@ -236,9 +262,9 @@ const UserDashboard = () => {
                 <span className="text-lg">🛵</span>
                 <span className="text-base font-semibold whitespace-nowrap">Delivery</span>
               </div>
-              <div 
+              <div
                 className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Dining Out' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderBottomColor: activeFilter === 'Dining Out' ? '#E23744' : 'transparent',
                   color: activeFilter === 'Dining Out' ? '#E23744' : '#6B7280'
                 }}
@@ -247,9 +273,9 @@ const UserDashboard = () => {
                 <span className="text-lg">🍽️</span>
                 <span className="text-base font-semibold whitespace-nowrap">Dining Out</span>
               </div>
-              <div 
+              <div
                 className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Nightlife' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderBottomColor: activeFilter === 'Nightlife' ? '#E23744' : 'transparent',
                   color: activeFilter === 'Nightlife' ? '#E23744' : '#6B7280'
                 }}
@@ -258,9 +284,9 @@ const UserDashboard = () => {
                 <span className="text-lg">🍷</span>
                 <span className="text-base font-semibold whitespace-nowrap">Nightlife</span>
               </div>
-              <div 
+              <div
                 className={`cursor-pointer flex items-center gap-2 pb-3 transition-colors ${activeFilter === 'Orders' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderBottomColor: activeFilter === 'Orders' ? '#E23744' : 'transparent',
                   color: activeFilter === 'Orders' ? '#E23744' : '#6B7280'
                 }}
@@ -333,11 +359,11 @@ const UserDashboard = () => {
                           <div className="restaurant-card-info" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
                             <span className="restaurant-card-delivery-time" style={{ padding: '4px 8px', fontSize: '11px' }}>30-40 min</span>
                             <span style={{ fontSize: '11px', color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span style={{ 
-                                width: '8px', 
-                                height: '8px', 
-                                borderRadius: '50%', 
-                                background: '#60B246', 
+                              <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: '#60B246',
                                 display: 'inline-block'
                               }}></span>
                               2500+ orders
@@ -362,10 +388,10 @@ const UserDashboard = () => {
                 ) : (
                   <div className="flex flex-col gap-5">
                     {orders.map((order) => (
-                      <div 
-                        key={order.id} 
+                      <div
+                        key={order.id}
                         className="bg-white rounded-xl p-6 border"
-                        style={{ 
+                        style={{
                           borderColor: '#E8E8E8',
                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
                         }}
@@ -413,7 +439,7 @@ const UserDashboard = () => {
 
       {/* Menu Page - Grid Layout Like Home Page */}
       {selectedRestaurant && (
-        <div className="fixed inset-0 z-[100] bg-white overflow-y-auto">
+        <div className="fixed inset-0 z-[2000] bg-white overflow-y-auto h-screen w-full overscroll-y-contain pt-20 pb-40">
           {/* Menu Items Grid - Like Restaurant Cards */}
           <div className="container mx-auto px-4 sm:px-6 py-6">
             {loadingMenu ? (
@@ -425,12 +451,12 @@ const UserDashboard = () => {
               <div className="text-center py-16">
                 <p className="text-gray-600 text-base">No menu items available</p>
               </div>
-              ) : (
+            ) : (
               <>
                 <div className="grid mb-6">
                   {menuItems.map((item) => (
                     <div
-                      key={item._id}
+                      key={item.id}
                       className="restaurant-card"
                     >
                       {/* Food Image */}
@@ -451,7 +477,7 @@ const UserDashboard = () => {
                         {/* Veg/Non-Veg Indicator */}
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-4 h-4 border-2 border-green-600 flex items-center justify-center rounded-sm">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                           </div>
                           <span className="text-xs font-semibold text-green-600 uppercase">VEG</span>
                         </div>
@@ -465,23 +491,23 @@ const UserDashboard = () => {
 
                         <div className="restaurant-card-cuisine">
                           {item.description || 'Delicious food item with amazing taste and quality ingredients.'}
-                      </div>
+                        </div>
 
                         <div className="restaurant-card-info">
                           {/* Add to Cart Button */}
-                          {cart[item._id] ? (
+                          {cart[item.id] ? (
                             <div className="flex items-center gap-2">
-                              <button 
-                                onClick={() => removeFromCart(item._id)} 
+                              <button
+                                onClick={() => removeFromCart(item.id)}
                                 className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-600 text-red-600 font-bold hover:bg-red-50 transition-colors"
                               >
                                 −
                               </button>
                               <span className="text-sm font-semibold text-gray-900 min-w-[24px] text-center">
-                                {cart[item._id].qty}
+                                {cart[item.id].qty}
                               </span>
-                              <button 
-                                onClick={() => addToCart(item)} 
+                              <button
+                                onClick={() => addToCart(item)}
                                 className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-600 text-red-600 font-bold hover:bg-red-50 transition-colors"
                               >
                                 +
@@ -507,7 +533,7 @@ const UserDashboard = () => {
                   <div className="mt-6 mb-6">
                     <button
                       className="w-full rounded-lg py-3 px-5 font-semibold text-lg transition-colors flex items-center justify-center gap-2"
-                      style={{ 
+                      style={{
                         backgroundColor: '#E23744',
                         color: 'white'
                       }}
