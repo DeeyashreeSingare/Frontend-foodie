@@ -1,0 +1,202 @@
+/* Navbar.css */
+
+.navbar-zomato {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    height: 72px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.navbar-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-zomato {
+    font-size: 2.2rem;
+    font-weight: 900;
+    font-style: italic;
+    color: #E23744;
+    letter-spacing: -1.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0;
+    transition: transform 0.2s ease;
+}
+
+.logo-zomato:hover {
+    transform: scale(1.02);
+}
+
+.search-bar-container {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+    position: relative;
+    display: none;
+    /* Hidden on mobile by default */
+}
+
+@media (min-width: 768px) {
+    .search-bar-container {
+        display: block;
+    }
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 3rem;
+    border: 1px solid #e8e8e8;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #E23744;
+    box-shadow: 0 4px 12px rgba(226, 55, 68, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 2rem;
+    background-color: #f8f8f8;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.user-profile:hover {
+    background-color: #fff;
+    border-color: #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+    color: #E23744;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+    display: none;
+}
+
+@media (min-width: 640px) {
+    .user-name {
+        display: block;
+    }
+}
+
+.nav-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.nav-btn-ghost {
+    color: #444;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.nav-btn-ghost:hover {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+.nav-btn-primary {
+    background-color: #E23744;
+    color: white;
+    border: none;
+}
+
+.nav-btn-primary:hover {
+    background-color: #D32F2F;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(226, 55, 68, 0.2);
+}
+
+.nav-btn-outline {
+    background-color: white;
+    color: #E23744;
+    border: 1.5px solid #E23744;
+}
+
+.nav-btn-outline:hover {
+    background-color: #FFF0F1;
+}
+
+.cart-icon-wrapper {
+    position: relative;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.cart-icon-wrapper:hover {
+    background-color: #f0f0f0;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #E23744;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}

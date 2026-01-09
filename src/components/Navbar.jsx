@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import './Navbar.css';
 
 const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, cartItemCount, onCartClick }) => {
     const { user, logout } = useAuth();
@@ -24,7 +25,6 @@ const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, ca
 
     const handleHomeClick = (e) => {
         e.preventDefault();
-        // Call custom home click handler if provided
         if (onHomeClick) {
             onHomeClick();
         }
@@ -34,30 +34,12 @@ const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, ca
 
     return (
         <nav className="navbar-zomato sticky top-0 z-50">
-            <div className="container flex justify-between items-center h-full gap-4" style={{ padding: '12px 16px' }}>
-                {/* Logo - Clickable Home Link */}
-                <div className="flex-shrink-0">
-                    <h1
-                        className="logo-zomato" 
-                        style={{
-                            margin: 0,
-                            fontSize: '2rem',
-                            cursor: 'pointer',
-                            userSelect: 'none'
-                        }}
-                        onClick={handleHomeClick}
-                        onMouseEnter={(e) => {
-                            e.target.style.opacity = '0.8';
-                            e.target.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.opacity = '1';
-                            e.target.style.transform = 'scale(1)';
-                        }}
-                        title={`Go to ${user?.role === 'end_user' ? 'User' : user?.role === 'restaurant' ? 'Restaurant' : user?.role === 'rider' ? 'Rider' : 'Home'} Dashboard`}
-                    >
+            <div className="navbar-container">
+                {/* Logo Section */}
+                <div onClick={handleHomeClick} style={{ cursor: 'pointer' }}>
+                    <h1 className="logo-zomato" title="Go to Dashboard">
                         foodie
-                        <span className="ml-2 text-2xl" role="img" aria-label="role-icon">
+                        <span role="img" aria-label="role-icon" style={{ fontSize: '1.8rem' }}>
                             {user?.role === 'rider' && '🛵'}
                             {user?.role === 'restaurant' && '🏪'}
                             {user?.role === 'end_user' && '😋'}
@@ -66,78 +48,47 @@ const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, ca
                     </h1>
                 </div>
 
-                {/* Search Bar (Centered, Optional) */}
+                {/* Search Bar (Centered) */}
                 {showSearch && (
-                    <div className="hidden md:flex flex-1 px-4">
-                        <div className="relative w-full">
-                            <input
-                                type="text"
-                                placeholder="Search for restaurant, cuisine or a dish"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none"
-                                style={{ fontSize: '0.9rem' }}
-                                onChange={(e) => onSearch && onSearch(e.target.value)}
-                            />
-                            <span className="absolute right-3 top-3 text-gray-400">🔍</span>
-                        </div>
+                    <div className="search-bar-container">
+                        <span className="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Search for restaurant, cuisine or a dish"
+                            className="search-input"
+                            onChange={(e) => onSearch && onSearch(e.target.value)}
+                        />
                     </div>
                 )}
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-6">
+                <div className="nav-actions">
                     {user ? (
                         <>
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">
-                                    {user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="hidden sm:block font-medium">{user.name}</span>
-                            </div>
-
                             {onCartClick && (
                                 <div
-                                    className="relative cursor-pointer hover:opacity-80 transition-opacity"
+                                    className="cart-icon-wrapper"
                                     onClick={onCartClick}
                                     title="View Cart"
-                                    style={{ 
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '32px',
-                                        height: '32px'
-                                    }}
                                 >
-                                    <span className="text-2xl" style={{ lineHeight: '1' }}>🛒</span>
+                                    <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>🛒</span>
                                     {cartItemCount > 0 && (
-                                        <span
-                                            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                                            style={{ 
-                                                minWidth: '20px', 
-                                                height: '20px',
-                                                fontSize: '10px',
-                                                padding: '0 4px',
-                                                boxSizing: 'border-box'
-                                            }}
-                                        >
+                                        <span className="cart-badge">
                                             {cartItemCount > 9 ? '9+' : cartItemCount}
                                         </span>
                                     )}
                                 </div>
                             )}
 
-                            <button
-                                onClick={onMyOrdersClick}
-                                className="nav-link mr-2"
-                                style={{ 
-                                    color: '#1C1C1C',
-                                    fontWeight: 500,
-                                    padding: '8px 16px',
-                                    borderRadius: '8px',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = '#F3F4F6'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                            >
-                                My Orders
+                            <div className="user-profile">
+                                <div className="user-avatar">
+                                    {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="user-name">{user.name}</span>
+                            </div>
+
+                            <button onClick={onMyOrdersClick} className="nav-btn nav-btn-ghost">
+                                Orders
                             </button>
 
                             <button
@@ -146,24 +97,16 @@ const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, ca
                                         logout();
                                     }
                                 }}
-                                className="nav-link"
-                                style={{ 
-                                    color: '#1C1C1C',
-                                    fontWeight: 500,
-                                    padding: '8px 16px',
-                                    borderRadius: '8px',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = '#F3F4F6'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                className="nav-btn nav-btn-ghost"
+                                style={{ color: '#E23744' }}
                             >
                                 Log out
                             </button>
                         </>
                     ) : (
-                        <div className="flex gap-4">
-                            <a href="/login" style={{ color: '#1C1C1C', fontWeight: 500 }} className="hover:underline">Log in</a>
-                            <a href="/signup" className="btn-zomato-outline" style={{ padding: '8px 16px', fontSize: '14px' }}>Sign up</a>
+                        <div className="flex gap-3">
+                            <a href="/login" className="nav-btn nav-btn-ghost">Log in</a>
+                            <a href="/signup" className="nav-btn nav-btn-outline">Sign up</a>
                         </div>
                     )}
                 </div>

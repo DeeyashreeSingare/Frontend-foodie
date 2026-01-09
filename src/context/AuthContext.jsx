@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        
+
         if (storedToken && storedUser) {
           try {
             setToken(storedToken);
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.signin({ email, password });
       console.log('Signin response:', response.data); // Debug log
-      
+
       const accessToken = response.data.accessToken || response.data.token;
       const userData = {
         id: response.data.id,
@@ -95,11 +95,11 @@ export const AuthProvider = ({ children }) => {
         email: response.data.email,
         role: response.data.role,
       };
-      
+
       if (!accessToken) {
         throw new Error('No token received from server');
       }
-      
+
       // Store token and user
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', accessToken);
@@ -107,16 +107,22 @@ export const AuthProvider = ({ children }) => {
       }
       setToken(accessToken);
       setUser(userData);
-      
+
       // Initialize socket connection
       initSocket(accessToken);
-      
+
       return { success: true, user: userData };
     } catch (error) {
       console.error('Signin error:', error);
+      const backendError = error.response?.data?.error;
+      const backendMessage = error.response?.data?.message;
+      const errorMessage = (backendMessage === 'Something went wrong!' && backendError)
+        ? backendError
+        : (backendMessage || error.message || 'Login failed. Please check your credentials.');
+
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Login failed. Please check your credentials.',
+        error: errorMessage,
       };
     }
   };
