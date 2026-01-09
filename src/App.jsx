@@ -15,11 +15,7 @@ import RiderDashboard from './pages/RiderDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import TestPage from './pages/TestPage';
 
-console.log('App.jsx loaded');
-
 function App() {
-  console.log('App component rendering...');
-  
   return (
     <ErrorBoundary>
       <AuthProvider>

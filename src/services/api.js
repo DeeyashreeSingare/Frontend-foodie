@@ -1,8 +1,28 @@
 import axios from 'axios';
 
 // Create axios instance with base configuration
+// For local development: use empty string to leverage Vite proxy (recommended)
+// For production: use VITE_API_BASE_URL from environment
+const getBaseURL = () => {
+  // In development (Vite dev server), prefer using Vite proxy for better CORS handling
+  // Only use VITE_API_BASE_URL in dev if explicitly needed (e.g., testing with external backend)
+  if (import.meta.env.DEV) {
+    // If VITE_API_BASE_URL is explicitly set and not localhost, use it
+    // Otherwise, use empty string to leverage Vite proxy
+    const envURL = import.meta.env.VITE_API_BASE_URL;
+    if (envURL && !envURL.includes('localhost')) {
+      return envURL;
+    }
+    // Use empty string to leverage Vite proxy in development
+    return '';
+  }
+  // In production, use the full URL from environment variable
+  // If not set, it will fail gracefully - user must set VITE_API_BASE_URL in production
+  return import.meta.env.VITE_API_BASE_URL || '';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },

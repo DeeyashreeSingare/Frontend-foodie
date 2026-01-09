@@ -40,12 +40,20 @@ export const SocketProvider = ({ children }) => {
         const { notificationAPI } = await import('../services/api');
         const response = await notificationAPI.getAll();
         const fetchedNotifications = response.data || [];
-        console.log('SocketContext: Fetched all notifications:', fetchedNotifications);
-        if (Array.isArray(fetchedNotifications) && fetchedNotifications.length > 0) {
+        // Always update notifications, even if empty array
+        if (Array.isArray(fetchedNotifications)) {
           setNotifications(fetchedNotifications);
+          // Save to localStorage
+          if (fetchedNotifications.length > 0) {
+            localStorage.setItem('notifications', JSON.stringify(fetchedNotifications));
+          } else {
+            localStorage.removeItem('notifications');
+          }
         }
       } catch (error) {
         console.error('Error fetching notifications in SocketContext:', error);
+        // On error, set empty array
+        setNotifications([]);
       }
     };
 
@@ -59,16 +67,11 @@ export const SocketProvider = ({ children }) => {
 
     const socket = getSocket();
     if (!socket) {
-      console.warn('Socket not initialized');
       return;
     }
 
-    console.log('SocketContext: Setting up listeners, socket connected:', socket.connected);
-
-
     // Listen for new notifications and save them
     socket.on('new_notification', (notification) => {
-      console.log('SocketContext - New notification received:', notification);
       setNotifications((prev) => {
         // Check if notification already exists
         const notificationId = notification._id || notification.id;
@@ -102,8 +105,6 @@ export const SocketProvider = ({ children }) => {
 
     // Listen for order updates and show notifications
     socket.on('order_update', (orderData) => {
-      console.log('Order update received in SocketContext:', orderData);
-      
       // Show notification for status changes
       if (orderData.status) {
         const statusMessages = {

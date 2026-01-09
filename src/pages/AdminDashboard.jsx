@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { restaurantAPI, notificationAPI } from '../services/api';
 import ToastNotification from '../components/ToastNotification';
 import Navbar from '../components/Navbar';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+  const { notifications, setNotifications } = useSocket();
   const [restaurants, setRestaurants] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
@@ -18,12 +19,9 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [restaurantsRes, notificationsRes] = await Promise.all([
-        restaurantAPI.getAll(),
-        notificationAPI.getAll()
-      ]);
+      const restaurantsRes = await restaurantAPI.getAll();
       setRestaurants(restaurantsRes.data || []);
-      setNotifications(notificationsRes.data || []);
+      // Notifications are managed by SocketContext, no need to fetch here
     } catch (err) {
       console.error('Error fetching admin data:', err);
       setError('Failed to load system data');

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Navbar = ({ toggleNotifications, notificationCount, showSearch = false, onMyOrdersClick, onSearch, onHomeClick, cartItemCount, onCartClick }) => {
+const Navbar = ({ showSearch = false, onMyOrdersClick, onSearch, onHomeClick, cartItemCount, onCartClick }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -98,12 +98,25 @@ const Navbar = ({ toggleNotifications, notificationCount, showSearch = false, on
                                     className="relative cursor-pointer hover:opacity-80 transition-opacity"
                                     onClick={onCartClick}
                                     title="View Cart"
+                                    style={{ 
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '32px',
+                                        height: '32px'
+                                    }}
                                 >
-                                    <span className="text-2xl">🛒</span>
+                                    <span className="text-2xl" style={{ lineHeight: '1' }}>🛒</span>
                                     {cartItemCount > 0 && (
                                         <span
-                                            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                                            style={{ minWidth: '20px', fontSize: '10px' }}
+                                            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                                            style={{ 
+                                                minWidth: '20px', 
+                                                height: '20px',
+                                                fontSize: '10px',
+                                                padding: '0 4px',
+                                                boxSizing: 'border-box'
+                                            }}
                                         >
                                             {cartItemCount > 9 ? '9+' : cartItemCount}
                                         </span>
@@ -128,7 +141,11 @@ const Navbar = ({ toggleNotifications, notificationCount, showSearch = false, on
                             </button>
 
                             <button
-                                onClick={logout}
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to log out?')) {
+                                        logout();
+                                    }
+                                }}
                                 className="nav-link"
                                 style={{ 
                                     color: '#1C1C1C',

@@ -4,7 +4,6 @@ import { useSocket } from '../context/SocketContext';
 import { getSocket } from '../services/socket';
 import { orderAPI } from '../services/api';
 import OrderStatus from '../components/OrderStatus';
-import NotificationPanel from '../components/NotificationPanel';
 import ToastNotification from '../components/ToastNotification';
 import Navbar from '../components/Navbar';
 
@@ -15,45 +14,12 @@ const RiderDashboard = () => {
   const [myOrders, setMyOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('available');
   const [loading, setLoading] = useState(true);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchData();
-    fetchNotifications();
+    // Notifications are managed by SocketContext, no need to fetch here
   }, []);
-
-  // Listen for real-time notifications (including role-based)
-  useEffect(() => {
-    const socket = getSocket();
-    
-    if (!socket) return;
-
-    const handleNewNotification = (notification) => {
-      console.log('New notification received in RiderDashboard:', notification);
-      setNotifications((prev) => {
-        if (prev.find(n => n._id === notification._id || n.id === notification._id)) {
-          return prev;
-        }
-        return [notification, ...prev];
-      });
-      // Show toast notification
-      window.dispatchEvent(new CustomEvent('app-toast', {
-        detail: { 
-          message: notification.message || notification.title || 'New notification',
-          type: 'info'
-        }
-      }));
-    };
-
-    socket.on('new_notification', handleNewNotification);
-
-    return () => {
-      if (socket && socket.connected) {
-        socket.off('new_notification', handleNewNotification);
-      }
-    };
-  }, [setNotifications]);
 
   // Listen for global toasts
   useEffect(() => {
@@ -66,15 +32,6 @@ const RiderDashboard = () => {
     return () => window.removeEventListener('app-toast', handleToast);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const { notificationAPI } = await import('../services/api');
-      const response = await notificationAPI.getAll();
-      setNotifications(response.data || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
@@ -157,8 +114,6 @@ const RiderDashboard = () => {
     }
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
   return (
     <div className="min-h-screen bg-gray-50">
       {toast && (
@@ -169,14 +124,7 @@ const RiderDashboard = () => {
         />
       )}
 
-      <Navbar
-        toggleNotifications={() => setShowNotifications(!showNotifications)}
-        notificationCount={unreadCount}
-      />
-
-      {showNotifications && (
-        <NotificationPanel onClose={() => setShowNotifications(false)} />
-      )}
+      <Navbar />
 
       <div className="container">
         {/* Tabs */}

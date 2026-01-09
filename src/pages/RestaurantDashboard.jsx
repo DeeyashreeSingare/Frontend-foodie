@@ -4,7 +4,6 @@ import { useSocket } from '../context/SocketContext';
 import { getSocket } from '../services/socket';
 import { orderAPI, restaurantAPI } from '../services/api';
 import OrderStatus from '../components/OrderStatus';
-import NotificationPanel from '../components/NotificationPanel';
 import ToastNotification from '../components/ToastNotification';
 import Navbar from '../components/Navbar';
 import RestaurantForm from '../components/RestaurantForm';
@@ -17,12 +16,12 @@ const RestaurantDashboard = () => {
   const getImageURL = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `http://localhost:3000${url}`;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : '');
+    return baseURL ? `${baseURL}${url}` : url;
   };
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'menu'
   const [menuItems, setMenuItems] = useState([]);
@@ -35,37 +34,7 @@ const RestaurantDashboard = () => {
 
   useEffect(() => {
     fetchMyRestaurants();
-    fetchNotifications();
-  }, []);
-
-  // Listen for real-time notifications
-  useEffect(() => {
-    const socket = getSocket();
-
-    if (socket) {
-      const handleNewNotification = (notification) => {
-        console.log('New notification received in RestaurantDashboard:', notification);
-        setNotifications((prev) => {
-          if (prev.find(n => n._id === notification._id || n.id === notification._id)) {
-            return prev;
-          }
-          return [notification, ...prev];
-        });
-        // Show toast notification
-        window.dispatchEvent(new CustomEvent('app-toast', {
-          detail: { 
-            message: notification.message || notification.title || 'New notification',
-            type: 'info'
-          }
-        }));
-      };
-
-      socket.on('new_notification', handleNewNotification);
-
-      return () => {
-        socket.off('new_notification', handleNewNotification);
-      };
-    }
+    // Notifications are managed by SocketContext, no need to fetch here
   }, []);
 
   // Listen for global toasts
@@ -80,15 +49,6 @@ const RestaurantDashboard = () => {
   }, []);
 
 
-  const fetchNotifications = async () => {
-    try {
-      const { notificationAPI } = await import('../services/api');
-      const response = await notificationAPI.getAll();
-      setNotifications(response.data || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
 
   useEffect(() => {
     if (selectedRestaurant) {
@@ -191,14 +151,7 @@ const RestaurantDashboard = () => {
         />
       )}
 
-      <Navbar
-        toggleNotifications={() => setShowNotifications(!showNotifications)}
-        notificationCount={unreadCount}
-      />
-
-      {showNotifications && (
-        <NotificationPanel onClose={() => setShowNotifications(false)} />
-      )}
+      <Navbar />
 
       {/* Modals */}
       {(showRestaurantForm || editingRestaurant) && (

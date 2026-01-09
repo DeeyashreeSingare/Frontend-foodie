@@ -3,25 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { restaurantAPI, orderAPI } from '../services/api';
-import { getSocket } from '../services/socket';
 import Navbar from '../components/Navbar';
-import NotificationPanel from '../components/NotificationPanel';
 import OrderStatus from '../components/OrderStatus';
 import ToastNotification from '../components/ToastNotification';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { notifications, orders, setOrders, addOrderToState, setNotifications } = useSocket();
+  const { orders, setOrders, addOrderToState } = useSocket();
 
   const getImageURL = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `http://localhost:3000${url}`;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : '');
+    return baseURL ? `${baseURL}${url}` : url;
   };
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [toast, setToast] = useState(null);
 
   // Cart & Order State
@@ -46,7 +44,7 @@ const UserDashboard = () => {
   useEffect(() => {
     fetchRestaurants();
     fetchMyOrders();
-    fetchNotifications();
+    // Notifications are managed by SocketContext, no need to fetch here
   }, []);
 
   // Listen for global toasts from SocketContext (real-time notifications)
@@ -61,17 +59,6 @@ const UserDashboard = () => {
     return () => window.removeEventListener('app-toast', handleToast);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const { notificationAPI } = await import('../services/api');
-      const response = await notificationAPI.getAll();
-      const fetchedNotifications = response.data || [];
-      console.log('Fetched notifications:', fetchedNotifications);
-      setNotifications(fetchedNotifications);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
@@ -179,18 +166,33 @@ const UserDashboard = () => {
 
       const response = await orderAPI.create(orderData);
       addOrderToState(response.data.order);
+      
+      // Show success toast notification FIRST before clearing state
+      showToast('🎉 Thank you! Your order is placed and will be delivered soon.', 'success');
+      
+      // Also trigger global toast event for consistency
+      window.dispatchEvent(new CustomEvent('app-toast', {
+        detail: { 
+          message: '🎉 Thank you! Your order is placed and will be delivered soon.',
+          type: 'success'
+        }
+      }));
+      
+      // Clear cart and restaurant AFTER showing toast
       setCart({});
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
-      setSelectedRestaurant(null);
-      showToast('Thank you! Your order is placed and will be delivered soon.', 'success');
+      
+      // Delay clearing selectedRestaurant to allow toast to show
+      setTimeout(() => {
+        setSelectedRestaurant(null);
+      }, 100);
     } catch (error) {
       console.error('Error placing order:', error);
       showToast('Failed to place order', 'error');
     }
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="bg-white min-h-screen">
@@ -203,8 +205,6 @@ const UserDashboard = () => {
       )}
 
       <Navbar
-        toggleNotifications={() => setShowNotifications(!showNotifications)}
-        notificationCount={unreadCount}
         showSearch={true}
         cartItemCount={cartItemCount}
         onCartClick={() => navigate('/cart')}
@@ -218,10 +218,6 @@ const UserDashboard = () => {
         }}
         onSearch={setSearchQuery}
       />
-
-      {showNotifications && (
-        <NotificationPanel onClose={() => setShowNotifications(false)} />
-      )}
 
       {/* Hero Section - Conditional rendering if not viewing specific features */}
       {!selectedRestaurant && (

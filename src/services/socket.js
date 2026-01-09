@@ -8,7 +8,22 @@ export const initSocket = (token) => {
     return socket;
   }
 
-  socket = io('http://localhost:3000', {
+  // Use VITE_API_BASE_URL from environment
+  // In development, use empty string to leverage Vite proxy
+  // In production, VITE_API_BASE_URL must be set
+  let socketURL;
+  if (import.meta.env.DEV) {
+    // Development: use Vite proxy if VITE_API_BASE_URL not set
+    socketURL = import.meta.env.VITE_API_BASE_URL || '';
+  } else {
+    // Production: require VITE_API_BASE_URL
+    socketURL = import.meta.env.VITE_API_BASE_URL;
+    if (!socketURL) {
+      console.error('VITE_API_BASE_URL is not set in production!');
+    }
+  }
+  
+  socket = io(socketURL, {
     auth: {
       token: token,
     },
@@ -22,14 +37,6 @@ export const initSocket = (token) => {
   socket.io.opts.extraHeaders = {
     Authorization: `Bearer ${token}`
   };
-
-  socket.on('connect', () => {
-    console.log('Socket connected:', socket.id);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected');
-  });
 
   socket.on('error', (error) => {
     console.error('Socket error:', error);

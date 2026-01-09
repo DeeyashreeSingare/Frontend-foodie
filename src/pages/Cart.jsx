@@ -13,6 +13,7 @@ const Cart = () => {
   const [cart, setCart] = useState({});
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [toast, setToast] = useState(null);
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   useEffect(() => {
     // Load cart and restaurant from localStorage
@@ -24,12 +25,20 @@ const Cart = () => {
     if (savedRestaurant) {
       setSelectedRestaurant(JSON.parse(savedRestaurant));
     }
+    
+    // Check for pending order success toast
+    const pendingToast = sessionStorage.getItem('orderSuccessToast');
+    if (pendingToast) {
+      setToast(JSON.parse(pendingToast));
+      sessionStorage.removeItem('orderSuccessToast');
+    }
   }, []);
 
   const getImageURL = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `http://localhost:3000${url}`;
+    const baseURL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : '');
+    return baseURL ? `${baseURL}${url}` : url;
   };
 
   const addToCart = (item) => {
@@ -108,31 +117,92 @@ const Cart = () => {
 
       const response = await orderAPI.create(orderData);
       addOrderToState(response.data.order);
+      
+      // Mark that order was placed
+      setOrderPlaced(true);
+      
+      // Show success toast notification FIRST before clearing state
+      const toastMessage = '🎉 Thank you! Your order is placed and will be delivered soon.';
+      setToast({ 
+        message: toastMessage, 
+        type: 'success' 
+      });
+      
+      // Save toast to sessionStorage so it persists after state change
+      sessionStorage.setItem('orderSuccessToast', JSON.stringify({
+        message: toastMessage,
+        type: 'success'
+      }));
+      
+      // Also trigger global toast event for consistency
+      window.dispatchEvent(new CustomEvent('app-toast', {
+        detail: { 
+          message: toastMessage,
+          type: 'success'
+        }
+      }));
+      
+      // Clear cart and restaurant AFTER showing toast
       setCart({});
       localStorage.removeItem('cart');
       localStorage.removeItem('selectedRestaurant');
-      setSelectedRestaurant(null);
-      setToast({ message: 'Thank you! Your order is placed and will be delivered soon.', type: 'success' });
+      
+      // Delay clearing selectedRestaurant to allow toast to show
+      setTimeout(() => {
+        setSelectedRestaurant(null);
+      }, 200);
     } catch (error) {
       console.error('Error placing order:', error);
       setToast({ message: 'Failed to place order', type: 'error' });
     }
   };
 
-  if (!selectedRestaurant) {
+  // Only show "Thank you" page if order was actually placed
+  if (!selectedRestaurant && orderPlaced) {
     return (
       <div className="bg-white min-h-screen">
+        {toast && (
+          <ToastNotification
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
         <Navbar />
         <div className="container py-12 text-center">
   
           <h2 className="text-2xl font-bold mb-4" style={{ color: '#1C1C1C' }}>Thank you! Your order is placed and will be delivered soon.</h2>
           <p className="text-gray-600 mb-6">We're preparing your delicious meal!</p>
           <button
-            onClick={() => navigate('/user')}
+            onClick={() => {
+              setOrderPlaced(false);
+              navigate('/user');
+            }}
             className="btn-zomato"
             style={{ padding: '12px 24px', fontSize: '16px' }}
           >
             Browse More Restaurants
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If no restaurant selected and no order placed, redirect to user dashboard
+  if (!selectedRestaurant && !orderPlaced) {
+    return (
+      <div className="bg-white min-h-screen">
+        <Navbar />
+        <div className="container py-12 text-center">
+          <div className="text-6xl mb-4">🛒</div>
+          <h2 className="text-2xl font-bold mb-2">No restaurant selected</h2>
+          <p className="text-gray-600 mb-6">Please select a restaurant to view your cart.</p>
+          <button
+            onClick={() => navigate('/user')}
+            className="btn-zomato"
+            style={{ padding: '12px 24px', fontSize: '16px' }}
+          >
+            Browse Restaurants
           </button>
         </div>
       </div>
